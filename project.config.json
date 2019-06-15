@@ -1,0 +1,80 @@
+{
+	"description": "项目配置文件。",
+	"cloudfunctionRoot": "cloudfunctions/",
+	"packOptions": {
+		"ignore": []
+	},
+	"setting": {
+		"urlCheck": true,
+		"es6": true,
+		"postcss": true,
+		"minified": true,
+		"newFeature": true,
+		"coverView": true,
+		"autoAudits": false,
+		"checkInvalidKey": true,
+		"checkSiteMap": true,
+		"uploadWithSourceMap": true,
+		"babelSetting": {
+			"ignore": [],
+			"disablePlugins": [],
+			"outputPath": ""
+		},
+		"nodeModules": true
+	},
+	"compileType": "miniprogram",
+	"libVersion": "2.3.0",
+	"appid": "wxe50c8090fabc2267",
+	"projectname": "Flower",
+	"isGameTourist": false,
+	"simulatorType": "wechat",
+	"simulatorPluginLibVersion": {},
+	"condition": {
+		"search": {
+			"current": -1,
+			"list": []
+		},
+		"conversation": {
+			"current": -1,
+			"list": []
+		},
+		"plugin": {
+			"current": -1,
+			"list": []
+		},
+		"game": {
+			"currentL": -1,
+			"list": []
+		},
+		"miniprogram": {
+			"current": 3,
+			"list": [
+				{
+					"id": 0,
+					"name": "db",
+					"pathName": "page/component/databaseGuide/databaseGuide",
+					"query": ""
+				},
+				{
+					"id": -1,
+					"name": "admin",
+					"pathName": "page/admin/admin",
+					"query": ""
+				},
+				{
+					"id": -1,
+					"name": "savedb",
+					"pathName": "page/component/databaseGuide/savadb",
+					"query": ""
+				},
+				{
+					"id": -1,
+					"name": "admin",
+					"pathName": "page/admin/admin",
+					"query": "",
+					"scene": null
+				}
+			]
+		}
+	}
+}
