@@ -25,9 +25,10 @@
     border-bottom: 1rpx solid #e9e9e9;
 }
 .classify-add-detail{
-    position: relative;
+    position: center;
     height: 640rpx;
     padding: 10rpx 0rpx 10rpx 50rpx;
+    margin-right: 20rpx;
     border-bottom: 1rpx solid #e9e9e9;
 }
 .classify-detail{
@@ -80,4 +81,10 @@
     border-radius: 6rpx;
     background: #b42f2d;
     color: #fff;
+}
+
+.good_preview{
+    float: left;
+    width: 200rpx;
+    height: 200rpx;
 }

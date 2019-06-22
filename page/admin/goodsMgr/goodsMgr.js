@@ -1,11 +1,17 @@
 // page/admin/goodsMgr/goodsMgr.js
+const db = wx.cloud.database();
 Page({
 
   /**
    * 页面的初始数据
    */
   data: {
-    maxid:0,
+    images:[],
+    goodName:'',
+    goodPrice:'',
+    goodAmount:'',
+    fileID:[],
+    goods:[]
   },
 
   /**
@@ -20,20 +26,114 @@ Page({
   onShow: function () {
 
   },
-  //Goods
-  getGoods: function (e) {
-    const db = wx.cloud.database();
-    // 查询当前用户所有的 counters
-    db.collection('data1').where({
-      mark: "goods"
-    }).get({
+  onNameChange:function(event){    
+    this.setData({
+      goodName:event.detail
+    })    
+  },
+  onPriceChange:function(event){    
+    this.setData({
+      goodPrice:event.detail
+    })    
+  },
+  onAmountChange:function(event){    
+    this.setData({
+      goodAmount:event.detail
+    })
+  },
+  uploadPicture:function(event){
+    wx.chooseImage({
+      count: 5,
+      sizeType: ['original', 'compressed'],
+      sourceType: ['album', 'camera'],
       success: res => {
+        // tempFilePath可以作为img标签的src属性显示图片
+        const tempFilePaths = res.tempFilePaths;
+        console.log(tempFilePaths);
         this.setData({
-          goods: res.data[0].data,
-          gooddbid: res.data[0]._id
+          images: this.data.images.concat(tempFilePaths)
+        });
+      }
+    })
+  },
+  submit:function(event){
+    wx.showLoading({
+      title: '上传中',
+    });    
+
+    let promiseArr=[];
+    for(let i=0; i<this.data.images.length ;i++){
+      let item = this.data.images[i];
+      let suffix = /\.\w+$/.exec(item)[0];
+      promiseArr.push(new Promise((resolve, reject) => {
+        wx.cloud.uploadFile({
+          cloudPath: new Date().toLocaleDateString() + '/' +new Date().getTime() + suffix,
+          filePath: item, // 文件路径
+          success: res => {
+            // get resource ID
+            console.log(res.fileID)
+            this.setData({
+              fileID: this.data.fileID.concat(res.fileID)
+            });
+            resolve();
+          },
+          fail: err => {
+            // handle error
+          }
         })
-        this.getMaxid();
-        console.log('[数据库] [查询记录] 成功: ', res)
+      }));
+    }
+    Promise.all(promiseArr).then(res =>{
+      db.collection('goods').add({    
+        data: {
+          goodName: this.data.goodName,
+          goodPrice:this.data.goodPrice,
+          goodAmount:this.data.goodAmount,
+          fileID:this.data.fileID         
+        }
+      }).then(res =>{
+        wx.hideLoading();
+        wx.showToast({
+          title: '成功',
+        })
+      }).catch(res => {
+        wx.hideLoading();
+        wx.showToast({
+          title: '评价失败',
+        })
+      })
+    })
+  }, 
+  //Goods
+  getGoods: function (e) {    
+    // 查询当前用户所有的 counters
+    db.collection('goods').where({
+      
+    }).get({
+      success: res => {       
+        console.log('[数据库] [查询记录] 成功: ', res)               
+        // 查询存储图片url 有效期2小时
+        let promiseArr=[];
+        for(let i =0 ;i < res.data.length; i++){
+          let fl = res.data[i].fileID;
+          promiseArr.push(new Promise((resolve,reject)=>{
+            wx.cloud.getTempFileURL({
+              fileList: fl,
+              success: urlres => {                    
+                res.data[i]['url'] = urlres.fileList;
+                console.log(urlres);
+                resolve();
+              },
+              fail: console.error
+            })      
+          })
+        )} 
+        Promise.all(promiseArr).then((promisRes) => {
+          this.setData({
+            goods: res.data  
+          })
+          console.log(this.data.goods);
+        }); 
       },
       fail: err => {
         wx.showToast({
@@ -44,90 +144,15 @@ Page({
       }
     })
   },
-  getMaxid: function (e) {
-    let goods = this.data.goods,
-      maxid = 0;
-    for (let i = 0; i < goods.length; i++) {
-      if (goods[i].id > maxid){
-        maxid = goods[i].id;
-      }      
-    }
-    this.setData({
-      maxid: maxid,
-    })    
-  }, 
-  //-----------------add-----------------------------------
-  getValue: function (e) {
-    this.setData({
-      goodid: e.detail.value.goodid,
-      goodclassify: e.detail.value.goodclassify,
-      gooddesc: e.detail.value.gooddesc,
-      goodpic: e.detail.value.goodpic,
-      gooddprice: e.detail.value.gooddprice,
-      gooddetail: e.detail.value.gooddetail,
-      goodgoodspics: e.detail.value.goodgoodspics,
-      goodparameter: e.detail.value.goodparameter,
-      goodservice: e.detail.value.goodservice,
-      goodtitle: e.detail.value.goodtitle,
-    })
-    this.addGood();
-  },
-  addGood: function (e) {
-    let goods = this.data.goods;
-    let goodid = this.data.goodid,
-      goodclassify = this.data.goodclassify,
-      gooddesc = this.data.gooddesc,
-      goodpic = this.data.goodpic,
-      gooddprice = this.data.gooddprice,
-      gooddetail = this.data.gooddetail,
-      goodgoodspics = this.data.goodgoodspics,
-      goodparameter = this.data.goodparameter,
-      goodservice = this.data.goodservice,
-      goodtitle = this.data.goodtitle;
-    if (!goodid || !goodclassify || !goodpic || !gooddprice){
-      wx.showToast({
-        icon: 'none',
-        title: '请输入值, 必填值不能为空'
-      });
-      return
-    }
-    //NaN: Not a Number
-    if (isNaN(gooddprice)) {
-      wx.showToast({
-        icon: 'none',
-        title: gooddprice+ '不是数字'
-      });
-      return
-    }
-    var goodidItem = {};
-    goodidItem.id = goodid;
-    goodidItem.classify = goodclassify;
-    goodidItem.desc = gooddesc;
-    goodidItem.goodspics = goodpic;
-    goodidItem.price = gooddprice;
-
-    goodidItem.detail = gooddetail;
-    goodidItem.goodspics = goodgoodspics;
-    goodidItem.parameter = goodparameter;
-    goodidItem.service = goodservice;
-    goodidItem.title = goodtitle;
-
-    goods.push(goodidItem);
-    this.setData({
-      goods: goods,
-    })
-    this.getMaxid();
-    this.syngoodDB();
-  },
   //---------------delete------------------------------
   deleteGoods: function (e) {
+    
+    console.log(e)
+    debugger
     let goods = this.data.goods;
-    var index = e.currentTarget.dataset.index;
-    goods.splice(index, 1);
     this.setData({
       goods: goods,
     })    
-    this.getMaxid();
     this.syngoodDB();
   },
   //--------------syngoodDB------------------------
