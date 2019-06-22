@@ -7,7 +7,10 @@ Page({
     autoplay: true,
     interval: 3000,
     duration: 1000,
-    loadingHidden: false  // loading
+    loadingHidden: false,
+    bannerHead:[],
+    bannerMedium:[],
+    bannerFoot:[]
   },
 
   //事件处理函数

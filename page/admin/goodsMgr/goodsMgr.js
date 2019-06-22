@@ -18,7 +18,7 @@ Page({
    * 生命周期函数--监听页面加载
    */
   onLoad: function (options) {
-    this.getGoods();
+    this.getGoodList();
   },
   /**
    * 生命周期函数--监听页面显示
@@ -71,7 +71,6 @@ Page({
           filePath: item, // 文件路径
           success: res => {
             // get resource ID
-            console.log(res.fileID)
             this.setData({
               fileID: this.data.fileID.concat(res.fileID)
             });
@@ -94,18 +93,19 @@ Page({
       }).then(res =>{
         wx.hideLoading();
         wx.showToast({
-          title: '成功',
-        })
+          title: '上传成功',
+        });
+        this.onLoad();
       }).catch(res => {
         wx.hideLoading();
         wx.showToast({
-          title: '评价失败',
+          title: '上传失败',
         })
-      })
+      })      
     })
   }, 
   //Goods
-  getGoods: function (e) {    
+  getGoodList: function (e) {    
     // 查询当前用户所有的 counters
     db.collection('goods').where({
       
@@ -121,7 +121,6 @@ Page({
               fileList: fl,
               success: urlres => {                    
                 res.data[i]['url'] = urlres.fileList;
-                console.log(urlres);
                 resolve();
               },
               fail: console.error
@@ -132,7 +131,6 @@ Page({
           this.setData({
             goods: res.data  
           })
-          console.log(this.data.goods);
         }); 
       },
       fail: err => {
@@ -145,37 +143,27 @@ Page({
     })
   },
   //---------------delete------------------------------
-  deleteGoods: function (e) {
-    
-    console.log(e)
-    debugger
-    let goods = this.data.goods;
+  deleteGoods: function (event) {
+    let index = event.currentTarget.id;
+    let goodToDelete = this.data.goods.slice(index,index+1);
+    this.data.goods.splice(index,1);
     this.setData({
-      goods: goods,
-    })    
-    this.syngoodDB();
-  },
-  //--------------syngoodDB------------------------
-  syngoodDB: function () {
-    const db = wx.cloud.database();
-    const _ = db.command;
-    var gooddbid = this.data.gooddbid;
-    db.collection('data1').doc(gooddbid).update({
-      data: {
-        //默认是更新  style.color  字段为 'blue' 而不是把  style  字段更新为  { color: 'blue' }  对象：
-        //如果需要替换更新一条记录，可以在记录上使用  set  方法，替换更新意味着用传入的对象替换指定的记录：
-        data: _.set(this.data.goods)
-      },
-      success: res => {
-        console.log('[数据库] [更新记录] 成功：', gooddbid);
-        wx.showToast({
-          title: '[数据库][更新记录] 成功：' + gooddbid,
-        })
-      },
-      fail: err => {
-        icon: 'none',
-          console.log('[数据库] [更新记录] 失败：', err)
-      }
-    })
-  },  
+      goods:this.data.goods
+    });
+    // handle databases
+    wx.cloud.callFunction({
+      name:'delete_good',
+      data:{
+        _id:goodToDelete[0]._id
+      }      
+    }).then(res => {
+      wx.showToast({
+        title: '成功',
+      });
+    }).catch(ret => {
+      wx.showToast({
+        title: '失败',
+      });
+    });
+  }
 })

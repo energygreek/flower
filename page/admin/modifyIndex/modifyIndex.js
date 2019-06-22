@@ -1,33 +1,27 @@
 // page/admin/modifyIndex/modifyIndex.js
+const db = wx.cloud.database();
 Page({
 
   /**
    * 页面的初始数据
    */
   data: {
-    tmp:[],
-    imodel: 1,
-    //dbid
-    imagedbid: '',
-    venuesItemsdbid: '',
-    choiceItemsdbid: '',
-    //----input---
-    imagepicurl: '',
-    venuesItemspicurl: '',
-    venuesItemsid: '',
-    choiceItemspicurl: '',
-    choiceItemsTitel: '',
-    choiceItemsid: '',
-    //----inputEnd---
+    goods:[],
+    //only for current tab
+    choosedCheckBox:[],
+    //当前操作栏目
+    imodel:'1',
+    items:[ 
+      {id: '1', value: '轮播图',checked: 'true'},
+      {id: '2', value: '小图'},
+      {id: '3', value: '大图'},]
   },
 
   /**
    * 生命周期函数--监听页面加载
    */
   onLoad: function (options) {
-    this.getSliderList();
-    this.getVenuesList();
-    this.getChoiceList();
+    this.getGoodList();
   },
 
   /**
@@ -116,231 +110,70 @@ Page({
       }
     })
   },
-  //----------------------SliderList------------------
-  imagepicurl: function (e) {
-    this.data.imagepicurl = e.detail.value;
-    e.detail.value = '';
-  },
-  addImages: function (e) {
-    wx.chooseImage({
-      count: 5,
-      sizeType: ['original', 'compressed'],
-      sourceType: ['album', 'camera'],
-      success: res => {
-        // tempFilePath可以作为img标签的src属性显示图片
-        const tempFilePaths = res.tempFilePaths;
-        console.log(tempFilePaths);
-        this.setData({
-          tmp: this.data.tmp.concat(tempFilePaths)
-        });
-      }
-    }) 
-  },
-  submit:function(event){
-    wx.showLoading({
-      title: '上传中',
+ 
+  updateImages: function (e) {
+    wx.cloud.callFunction({
+      name:'updateIndexPicture',
+      data:{
+        imodel:this.data.imodel,
+        updateData:this.data.choosedCheckBox
+      }      
+    }).then(res => {
+      wx.showToast({
+        title: '成功',
+      });
+    }).catch(ret => {
+      wx.showToast({
+        title: '失败',
+      });
     });
-    let promiseArr=[];
-    for(let i=0; i<this.data.tmp.length ;i++){
-      let item = this.data.tmp[i];
-      let suffix = /\.\w+$/.exec(item)[0];
-      promiseArr.push(new Promise((resolve, reject) => {
-        wx.cloud.uploadFile({
-          cloudPath: new Date().getTime() + suffix,
-          filePath: item, // 文件路径
-          success: res => {
-            // get resource ID
-            console.log(res.fileID)
-            this.setData({
-              fileID: this.data.fileID.concat(res.fileID)
-            });
-            resolve();
-          },
-          fail: err => {
-            // handle error
-          }
-        })
-      }));
-    }
-
-    Promise.all(promiseArr).then(res =>{
-      db.collection('comment').add({
-        data: {
-     
-          fileID:this.data.fileID
-        }
-      }).then(res =>{
-        wx.hideLoading();
-        wx.showToast({
-          title: '成功',
-        })
-      }).catch(res => {
-        wx.hideLoading();
-        wx.showToast({
-          title: '评价失败',
-        })
-      })
-    })
-  }, 
-  
-  deleteImages: function (e) {
-    let images = this.data.images,
-      imagedbid = this.data.imagedbid;
-    var index = e.currentTarget.dataset.index;
-    images.splice(index, 1);
-    this.setData({
-      images: images,
-    })
-    this.synImagesDB(imagedbid);
   },
-  
-  //----------------------venuesList------------------
-  venuesItemspicurl: function (e) {
-    this.data.venuesItemspicurl = e.detail.value;
-  },
-  venuesItemsid: function (e) {
-    this.data.venuesItemsid = e.detail.value;
-  },
-  addVenuesItems: function (e) {
-    let venuesItems = this.data.venuesItems,
-      venuesItemsdbid = this.data.venuesItemsdbid,
-      venuesItemspicurl = this.data.venuesItemspicurl,      
-      venuesItemsid = this.data.venuesItemsid;
-    var venuesItem = {};
-    if (!venuesItemsid || !venuesItemspicurl) {
-      wx.showToast({
-        icon: 'none',
-        title: '请输入网址和id'
-      })
-      return
-    }
-    if (isNaN(venuesItemsid)) {
-      wx.showToast({
-        icon: 'none',
-        title: 'id请输入对应的数字'
-      })
-      return
-    }  
-    venuesItem.smallpic = venuesItemspicurl;
-    venuesItem.id = venuesItemsid;
-    venuesItems.push(venuesItem);
-    this.setData({
-      venuesItems: venuesItems,
-    })
-    this.synVenuesItemsDB(venuesItemsdbid);
-  },
-  deleteVenuesItems: function (e) {
-    let venuesItems = this.data.venuesItems,
-      venuesItemsdbid = this.data.venuesItemsdbid;
-    var index = e.currentTarget.dataset.index;
-    venuesItems.splice(index, 1);
-    this.setData({
-      venuesItems: venuesItems,
-    })
-    this.synVenuesItemsDB(venuesItemsdbid);
-  },
-  synVenuesItemsDB: function (venuesItemsdbid) {
-    const db = wx.cloud.database();
-    const _ = db.command;
-    db.collection('data1').doc(venuesItemsdbid).update({
-      data: {
-        //默认是更新  style.color  字段为 'blue' 而不是把  style  字段更新为  { color: 'blue' }  对象：
-        //如果需要替换更新一条记录，可以在记录上使用  set  方法，替换更新意味着用传入的对象替换指定的记录：
-        venuesItems: _.set(this.data.venuesItems)
-      },
-      success: res => {
-        console.log('[数据库] [更新记录] 成功：', venuesItemsdbid);
-        wx.showToast({
-          title: '[数据库][更新记录] 成功：' + venuesItemsdbid,
-        })
-        this.setData({
-          venuesItemspicurl: '',
-          venuesItemsid: '',
-        })
+  //Goods
+  getGoodList: function (e) {    
+    // 查询当前用户所有的 counters
+    db.collection('goods').where({
+      
+    }).get({
+      success: res => {       
+        console.log('[数据库] [查询记录] 成功: ', res)               
+        // 查询存储图片url 有效期2小时
+        let promiseArr=[];
+        for(let i =0 ;i < res.data.length; i++){
+          let fl = res.data[i].fileID;
+          promiseArr.push(new Promise((resolve,reject)=>{
+            wx.cloud.getTempFileURL({
+              fileList: fl,
+              success: urlres => {                    
+                res.data[i]['url'] = urlres.fileList;
+                resolve();
+              },
+              fail: console.error
+            })      
+          })
+        )} 
+        Promise.all(promiseArr).then((promisRes) => {
+          this.setData({
+            goods: res.data  
+          })
+        }); 
       },
       fail: err => {
-        icon: 'none',
-          console.log('[数据库] [更新记录] 失败：', err)
+        wx.showToast({
+          icon: 'none',
+          title: '查询记录失败'
+        })
+        console.error('[数据库] [查询记录] 失败：', err)
       }
     })
   },
-  //----------------------ChoiceList------------------
-
-  choiceItemspicurl: function (e) {
-    this.data.choiceItemspicurl = e.detail.value;
-  },
-  choiceItemsid: function (e) {
-    this.data.choiceItemsid = e.detail.value;
-  },
-  choiceItemsTitel: function (e) {
-    this.data.choiceItemsTitel = e.detail.value;
-  },
-  addChoiceItems: function (e) {
-    let choiceItems = this.data.choiceItems,
-      choiceItemsdbid = this.data.choiceItemsdbid,
-      choiceItemspicurl = this.data.choiceItemspicurl,
-      choiceItemsTitel = this.data.choiceItemsTitel,
-      choiceItemsid = this.data.choiceItemsid;
-    var choiceItem = {};
-    if (!choiceItemsid || !choiceItemspicurl || !choiceItemsTitel) {
-      wx.showToast({
-        icon: 'none',
-        title: '请输入网址,titel和id'
-      })
-      return
-    }
-    if (isNaN(choiceItemsid)) {
-      wx.showToast({
-        icon: 'none',
-        title: 'id请输入对应的数字'
-      })
-      return
-    }  
-    choiceItem.goodspics = choiceItemspicurl;
-    choiceItem.id = choiceItemsid;
-    choiceItem.title = choiceItemsTitel;
-    choiceItems.push(choiceItem);
+  checkBoxChange: function(e) {
     this.setData({
-      choiceItems: choiceItems,
-    })
-    this.synChoiceItemsDB(choiceItemsdbid);
+      choosedCheckBox:e.detail.value
+    });
   },
-  deleteChoiceItems: function (e) {
-    let choiceItems = this.data.choiceItems,
-      choiceItemsdbid = this.data.choiceItemsdbid;
-    var index = e.currentTarget.dataset.index;
-    choiceItems.splice(index, 1);
+  radioChange: function(e) {
     this.setData({
-      choiceItems: choiceItems,
-    })
-    this.synChoiceItemsDB(choiceItemsdbid);
-  },
-  synChoiceItemsDB: function (choiceItemsdbid) {
-    const db = wx.cloud.database();
-    const _ = db.command;
-    db.collection('data1').doc(choiceItemsdbid).update({
-      data: {
-        //默认是更新  style.color  字段为 'blue' 而不是把  style  字段更新为  { color: 'blue' }  对象：
-        //如果需要替换更新一条记录，可以在记录上使用  set  方法，替换更新意味着用传入的对象替换指定的记录：
-        choiceItems: _.set(this.data.choiceItems)
-      },
-      success: res => {
-        console.log('[数据库] [更新记录] 成功：', choiceItemsdbid);
-        wx.showToast({
-          title: '[数据库][更新记录] 成功：' + choiceItemsdbid,
-        });
-        this.setData({
-          venuesItemspicurl: '',
-          choiceItemsid: '',
-          choiceItemspicurl: '',
-        })
-      },
-      fail: err => {
-        icon: 'none',
-          console.log('[数据库] [更新记录] 失败：', err)
-      }
-    })
-  },
-
-
+      imodel:e.detail.value
+    });
+  }
 })

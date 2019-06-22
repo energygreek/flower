@@ -1,52 +1,64 @@
 <!--page/admin/goodsMgr/goodsMgr.wxml-->
-<view class="classify-box">      
-  <view class="classify-add-detail">
-    <van-cell-group>
-        <van-field
-          value="{{ goodName }}"
-          placeholder="请输入花名"
-          required = "{{true}}"
-          border="{{ true }}"
-          bind:change="onNameChange"
-        />
+<view class="classify-box">
+	<view class="classify-add-detail">
+		<van-cell-group>
+			<van-field
+			 value="{{ goodName }}"
+			 placeholder="请输入花名"
+			 required="{{true}}"
+			 border="{{ true }}"
+			 bind:change="onNameChange"
+			/>
 
-        <van-field
-          value="{{ goodPrice }}"
-          placeholder="请输入价格"
-          required = "{{true}}"
-          border="{{ true }}"
-          bind:change="onPriceChange"
-        />
+			<van-field
+			 value="{{ goodPrice }}"
+			 placeholder="请输入价格"
+			 required="{{true}}"
+			 border="{{ true }}"
+			 bind:change="onPriceChange"
+			/>
 
-        <van-field
-          value="{{ goodAmount }}"
-          placeholder="请输入数量"
-          border="{{ true }}"
-          required = "{{true}}"
-          bind:change="onAmountChange"
-        /> 
-        <view wx:for = "{{images}}" wx:key="{{index}}">
-          <image class = "good_preview" src="{{item}}" />
-        </view>
-        <van-button type="warning" bindtap='uploadPicture' >上传图片</van-button>
-        <van-button type="danger" size="large" bindtap='submit' >上传商品</van-button>    
-    </van-cell-group>             
-  </view>
+			<van-field
+			 value="{{ goodAmount }}"
+			 placeholder="请输入数量"
+			 border="{{ true }}"
+			 required="{{true}}"
+			 bind:change="onAmountChange"
+			/>
+			<view wx:for="{{images}}" wx:key="{{index}}">
+				<image class="good_preview" src="{{item}}" />
+			</view>
+			<van-button type="warning" bindtap='uploadPicture'>上传图片</van-button>
+			<van-button type="danger" size="large" bindtap='submit'>上传商品</van-button>
+		</van-cell-group>
+	</view>
 
-  <text> \n </text>
-  <view  wx:for="{{goods}}" wx:key="{{index}}"> 
-    <view wx:for="{{item.url}}" wx:for-item="url" wx:key="{{index}}"> 商品图: 
-    <image src="{{url.tempFileURL}}" />> 
-    </view>   
-    <view class="classify-detail">                  
-        <view class="">数量: {{item.goodAmount}}</view>
-        <view class="">名称: {{item.goodName}}</view>
-        <view class="">价格: {{item.goodPrice}}</view>
-    </view>
-    <view class="classify-footer">
-        <button size="mini" class="classify-btn" data-index="{{index}}" bindtap="deleteGoods">删除</button> 
-    </view>               
-  </view>    
+	<text> \n </text>
+	<view class="classify-container" wx:for="{{goods}}" wx:key="{{index}}">
+		<view>
+			<image
+			 class="good_preview"
+			 wx:for="{{item.url}}"
+			 wx:for-item="url"
+			 wx:key="{{index}}"
+			 src="{{url.tempFileURL}}"
+			/>
+		</view>
+		<view class="classify-detail">
+			<view class="">详情</view>
+			<view class="">名称: {{item.goodName}}</view>
+			<view class="">价格: {{item.goodPrice}}</view>
+			<view class="">数量: {{item.goodAmount}}</view>
+		</view>
+		<view class="classify-footer">
+			<button
+			 size="mini"
+			 class="classify-btn"
+			 bindtap="deleteGoods"
+			 id="{{index}}"
+			>删除
+			</button>
+		</view>
+	</view>
 </view>
-
 
