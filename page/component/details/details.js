@@ -1,7 +1,8 @@
 // page/component/details/details.js
+const db = wx.cloud.database();
 Page({
   data:{
-    goods: {},
+    good:Object,
     goodid: 0,
     num: 1,
     hasCarts: false,
@@ -10,37 +11,33 @@ Page({
     scaleCart: false
   },
   //Goods // 商品详情
-  getGoods: function (e) {
-    const db = wx.cloud.database();
+  getGoods: function (goodid) {
     // 查询当前用户所有的 counters
-    db.collection('data1').where({
-      mark: "goods"
+    db.collection('goods').where({
+          _id:goodid
     }).get({
-      success: res => {
-        for (var i = 0; i < res.data[0].data.length; i++) {
-          if (res.data[0].data[i].id == this.data.goodid) {
-            this.setData({
-              goods: res.data[0].data[i]
-            })
-          }
-        }
-        var goodsPicsInfo = [];
-        var goodsPicsObj = {};
-        var goodspic = this.data.goods.goodspics;
-        var goodspics = goodspic.substring(0, goodspic.length - 1);
-        var goodspicsArr = goodspics.split("#");
-        goodsPicsInfo.push({
-          "picurl": this.data.goods.pic
-        });
-        for (var i = 0; i < goodspicsArr.length; i++) {
-          goodsPicsInfo.push({
-            "picurl": goodspicsArr[i]
-          });
-        }
-        this.setData({
-          goodsPicsInfo: goodsPicsInfo
-        })
-        console.log('[数据库] [查询记录] 成功: ', res)
+      success: res => {       
+        console.log('[数据库] [查询记录] 成功: ', res)               
+        // 查询存储图片url 有效期2小时
+        let promiseArr=[];
+        for(let i =0 ;i < res.data.length; i++){
+          let fl = res.data[i].fileID;
+          promiseArr.push(new Promise((resolve,reject)=>{
+            wx.cloud.getTempFileURL({
+              fileList: fl,
+              success: urlres => {                    
+                res.data[i]['url'] = urlres.fileList;
+                resolve();
+              },
+              fail: console.error
+            })      
+          })
+        )} 
+        Promise.all(promiseArr).then((promisRes) => {
+          this.setData({
+            good: res.data[0]  
+          })
+        }); 
       },
       fail: err => {
         wx.showToast({
@@ -51,6 +48,7 @@ Page({
       }
     })
   },
+
   addCount() {
     let num = this.data.num;
     num++;
@@ -100,8 +98,10 @@ Page({
     }
   },  
   onLoad: function (options) {
-    this.data.goodid = options.id;
-    this.getGoods(options.goodid);
+    this.setData({
+      goodid : options.id
+    });
+    this.getGoods(options.id);
   },
   bindTap(e) {
     const index = parseInt(e.currentTarget.dataset.index);

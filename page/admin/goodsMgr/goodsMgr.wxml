@@ -28,7 +28,7 @@
 			<view wx:for="{{images}}" wx:key="{{index}}">
 				<image class="good_preview" src="{{item}}" />
 			</view>
-			<van-button type="warning" bindtap='uploadPicture'>上传图片</van-button>
+			<van-button type="warning" bindtap='uploadPicture'>选择图片</van-button>
 			<van-button type="danger" size="large" bindtap='submit'>上传商品</van-button>
 		</van-cell-group>
 	</view>

@@ -43,7 +43,7 @@ Page({
   updateImages: function (e) {
     var choosedPic = new Array();
     for(let i in this.data.choosedCheckBox){
-      choosedPic.push(this.data.goods[i]);
+      choosedPic.push(this.data.goods[this.data.choosedCheckBox[i]]);
     }
     wx.cloud.callFunction({
       name:'updateIndexPicture',
