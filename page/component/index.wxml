@@ -10,9 +10,9 @@
 		 duration="{{duration}}"
 		 bindchange="swiperchange"
 		>
-			<block wx:for="{{bannerHead}}" wx:key="key">
+			<block wx:for="{{headBanners.pictureId}}" wx:key="{{headBanners._id}}">
 				<swiper-item>
-					<image src="{{item.picurl}}" class="slide-image" />
+					<image src="{{item.url[0].tempFileURL}}" class="slide-image" />
 				</swiper-item>
 			</block>
 		</swiper>
@@ -25,10 +25,10 @@
 
 	<view class="venues_box">
 		<view class="venues_list">
-			<block wx:for="{{venuesItems}}" wx:key="key">
+			<block wx:for="{{bodyBanners.pictureId}}" wx:key="{{bodyBanners._id}}">
 				<view class="venues_item">
-					<navigator url="details/details?id={{item.id}}">
-						<image src="{{item.smallpic}}" />
+					<navigator url="details/details?id={{item._id}}">
+						<image src="{{item.url[0].tempFileURL}}" />
 					</navigator>
 				</view>
 			</block>
@@ -42,20 +42,20 @@
 
 	<view class="choice_box">
 		<view class="choice_list">
-			<block wx:for="{{choiceItems}}" wx:key="key">
-				<navigator url="details/details?id={{item.id}}">
+			<block wx:for="{{footerBanners.pictureId}}" wx:key="{{footerBanners._id}}">
+				<navigator url="details/details?id={{item._id}}">
 					<view class="choice_item">
-						<image src="{{item.goodspics}}" />
-						<view class="title">{{item.title}}</view>
+						<image src="{{item.url[0].tempFileURL}}" />
+						<view class="title">{{item.goodName}}</view>
 					</view>
 				</navigator>
 			</block>
 		</view>
 	</view>
 
-	<loading hidden="{{loadingHidden}}">
+	<!--loading hidden="{{loadingHidden}}">
 		加载中...
-	</loading>
+	</loading -->
 
 </view>
 

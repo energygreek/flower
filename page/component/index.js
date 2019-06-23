@@ -1,3 +1,4 @@
+const db = wx.cloud.database();
 //获取应用实例
 var app = getApp()
 Page({
@@ -7,84 +8,12 @@ Page({
     autoplay: true,
     interval: 3000,
     duration: 1000,
-    loadingHidden: false,
-    bannerHead:[],
-    bannerMedium:[],
-    bannerFoot:[]
+    loadingHidden: true,    
+    headBanners:Object,
+    bodyBanners:Object,
+    footerBanners:Object
   },
 
-  //事件处理函数
-  swiperchange: function (e) {
-    //console.log(e.detail.current)
-  },
-  //getSliderList
-  getSliderList: function (e) {
-    const db = wx.cloud.database();
-    // 查询当前用户所有的 counters
-    db.collection('data1').where({
-      mark: "images"
-    }).get({
-      success: res => {
-        this.setData({
-          images: res.data[0].images
-        })
-        console.log('[数据库] [查询记录] 成功: ', res)
-      },
-      fail: err => {
-        wx.showToast({
-          icon: 'none',
-          title: '查询记录失败'
-        })
-        console.error('[数据库] [查询记录] 失败：', err)
-      }
-    })
-  },
-  //venuesList
-  getVenuesList: function (e) {
-    const db = wx.cloud.database();
-    // 查询当前用户所有的 counters
-    db.collection('data1').where({
-      mark: "venuesItems"
-    }).get({
-      success: res => {
-        this.setData({
-          venuesItems: res.data[0].venuesItems,
-          loadingHidden: true
-        })
-        console.log('[数据库] [查询记录] 成功: ', res)
-      },
-      fail: err => {
-        wx.showToast({
-          icon: 'none',
-          title: '查询记录失败'
-        })
-        console.error('[数据库] [查询记录] 失败：', err)
-      }
-    })
-  },
-  //getChoiceList
-  getChoiceList: function (e) {
-    const db = wx.cloud.database();
-    // 查询当前用户所有的 counters
-    db.collection('data1').where({
-      mark: "choiceItems"
-    }).get({
-      success: res => {
-        this.setData({
-          choiceItems: res.data[0].choiceItems,
-          loadingHidden: true
-        })
-        console.log('[数据库] [查询记录] 成功: ', res)
-      },
-      fail: err => {
-        wx.showToast({
-          icon: 'none',
-          title: '查询记录失败'
-        })
-        console.error('[数据库] [查询记录] 失败：', err)
-      }
-    })
-  },
   onLoad: function () {
     console.log('onLoad')
     var that = this
@@ -104,9 +33,124 @@ Page({
         }
       }
     })
-    this.getSliderList();
-    this.getChoiceList();
-    this.getVenuesList();
+
+    this.getHeaderPictures();;
+    this.getBodyPictures();
+    this.getFooterPictures();
+  },
+  getHeaderPictures: function (e) {    
+    // 查询当前用户所有的 counters
+    db.collection('index_picture').where({
+      imodel:'0'
+    }).get({
+      success: res => {       
+        console.log('[数据库] [查询记录] 成功: ', res)               
+        // 查询存储图片url 有效期2小时
+        let promiseArr=[];
+        for(let i =0 ;i < res.data[0].pictureId.length ; i++){
+          let fl = res.data[0].pictureId[i].fileID;
+          promiseArr.push(new Promise((resolve,reject)=>{
+            wx.cloud.getTempFileURL({
+              fileList: fl,
+              success: urlres => {                    
+                res.data[0].pictureId[i]['url'] = urlres.fileList;
+                resolve();
+              },
+              fail: console.error
+            })      
+          })
+        )} 
+        Promise.all(promiseArr).then((promisRes) => {
+          this.setData({
+            headBanners: res.data[0]  
+          })
+        }); 
+      },
+      fail: err => {
+        wx.showToast({
+          icon: 'none',
+          title: '查询记录失败'
+        })
+        console.error('[数据库] [查询记录] 失败：', err)
+      }
+    })
+  },
+  getBodyPictures: function (e) {    
+    // 查询当前用户所有的 counters
+    db.collection('index_picture').where({
+      imodel:'1'
+    }).get({
+      success: res => {       
+        console.log('[数据库] [查询记录] 成功: ', res)               
+        // 查询存储图片url 有效期2小时
+        let promiseArr=[];
+        for(let i =0 ;i < res.data[0].pictureId.length ; i++){
+          let fl = res.data[0].pictureId[i].fileID;
+          promiseArr.push(new Promise((resolve,reject)=>{
+            wx.cloud.getTempFileURL({
+              fileList: fl,
+              success: urlres => {                    
+                res.data[0].pictureId[i]['url'] = urlres.fileList;
+                resolve();
+              },
+              fail: console.error
+            })      
+          })
+        )} 
+        Promise.all(promiseArr).then((promisRes) => {
+          this.setData({
+            bodyBanners: res.data[0]  
+          })
+        }); 
+      },
+      fail: err => {
+        wx.showToast({
+          icon: 'none',
+          title: '查询记录失败'
+        })
+        console.error('[数据库] [查询记录] 失败：', err)
+      }
+    })
+  },
+  getFooterPictures: function (e) {    
+    // 查询当前用户所有的 counters
+    db.collection('index_picture').where({
+      imodel:'2'
+    }).get({
+      success: res => {       
+        console.log('[数据库] [查询记录] 成功: ', res)               
+        // 查询存储图片url 有效期2小时
+        let promiseArr=[];
+        for(let i =0 ;i < res.data[0].pictureId.length ; i++){
+          let fl = res.data[0].pictureId[i].fileID;
+          promiseArr.push(new Promise((resolve,reject)=>{
+            wx.cloud.getTempFileURL({
+              fileList: fl,
+              success: urlres => {                    
+                res.data[0].pictureId[i]['url'] = urlres.fileList;
+                resolve();
+              },
+              fail: console.error
+            })      
+          })
+        )} 
+        Promise.all(promiseArr).then((promisRes) => {
+          this.setData({
+            footerBanners: res.data[0]  
+          })
+        }); 
+      },
+      fail: err => {
+        wx.showToast({
+          icon: 'none',
+          title: '查询记录失败'
+        })
+        console.error('[数据库] [查询记录] 失败：', err)
+      }
+    })
+  },
+  swiperchange:function(e){
+
   }
 
 })

@@ -8,14 +8,14 @@
 		</label>
 	</radio-group>
 
-	<checkbox-group class="radio-group" bindchange="checkBoxChange">选择要展示在{{items[imodel-1].value}}的商品:
+	<checkbox-group class="radio-group" bindchange="checkBoxChange">选择要展示在{{items[imodel].value}}的商品:
 		<view class="radio" wx:for="{{goods}}" wx:key="{{index}}">
-			<checkbox value="{{item._id}}" checked="{{item.checked}}" />
+			<checkbox value="{{index}}" />
 			名称:{{item.goodName}} 库存:{{item.goodAmount}}
 		</view>
 	</checkbox-group>
 
-	<view class="orders-footer">
+	<view class=" orders-footer">
 		<button size="mini" class="orders-btn" bindtap="updateImages">保存选择</button>
 	</view>
 </view>
